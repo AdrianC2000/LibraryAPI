@@ -74,7 +74,6 @@ public class DatabaseHandler {
                     PreparedStatement preparedStmt = connection.prepareStatement("DELETE FROM " + tableName + " WHERE " + IDname + " = ?");
                     preparedStmt.setInt(1, id);
                     preparedStmt.execute();
-
                     System.out.println("querying DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
                     return new ReturnMessage("User with the id " + id + " deleted correctly.",true);
                 } catch (SQLException e) {
