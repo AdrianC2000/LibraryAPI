@@ -68,8 +68,6 @@ public class DatabaseHandler {
             if (Validators.resourceExistence(tableName, id, connection)) {
                 try {
                     String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
-                    Statement stmt = connection.createStatement();
-                    stmt.executeUpdate("DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
 
                     PreparedStatement preparedStmt = connection.prepareStatement("DELETE FROM " + tableName + " WHERE " + IDname + " = ?");
                     preparedStmt.setInt(1, id);
@@ -84,16 +82,7 @@ public class DatabaseHandler {
                     " with the id " + id + " does not exist.", false);
         }
 
-    public static String closeConnection() {
-        try {
-            connection.close();
-            return "Connection closed correctly.";
-        } catch (NullPointerException | SQLException e) {
-            return "An error occurred during closing the connection";
-        }
-    }
-
-    static ResultSet filterResource(String tableName, String logic, HashMap<String, String[]> requirementsMap) throws SQLException {
+    public static ResultSet filterResource(String tableName, String logic, HashMap<String, String[]> requirementsMap) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM " + tableName + " WHERE ");
         for (Map.Entry<String, String[]> entry : requirementsMap.entrySet()) {
             String parameter = entry.getKey();
@@ -137,6 +126,14 @@ public class DatabaseHandler {
             System.out.println(preparedStmt);
         }
         return preparedStmt.executeQuery();
-//        ResultSet result = preparedStmt.executeQuery();
+    }
+
+    public static String closeConnection() {
+        try {
+            connection.close();
+            return "Connection closed correctly.";
+        } catch (NullPointerException | SQLException e) {
+            return "An error occurred during closing the connection";
+        }
     }
 }

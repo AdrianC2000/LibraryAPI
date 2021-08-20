@@ -1,0 +1,287 @@
+---
+openapi: 3.0.3
+info:
+  title: "Library API"
+  version: "1.0"
+  description: "App for the use of library administrator."
+tags:
+  - name: "users"
+    description: "Operations connected with the users."
+  - name: "books"
+    description: "Operations connected with the books."
+paths:
+  /users:
+    get:
+      tags:
+        - "users"
+      summary: "Getting all the users from the database."
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - "users"
+      summary: "Adding a new user to the database."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /users/filter/{logic}:
+    post:
+      tags:
+        - "users"
+      summary: "Getting users from the database who meet the given requirements."
+      parameters:
+        - name: logic
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "'AND' or 'OR' depending on the output you want to get - 'AND' will return only records that meet all the
+          requirements, while 'OR' will return records that meet any of the requirements"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRequirements"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /users/{id}:
+    delete:
+      tags:
+        - "users"
+      summary: "Deleting a user from the database."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /users/{id}/{parameterToChange}?value={valueToSet}:
+    put:
+      tags:
+        - "users"
+      summary: "Changing given parameter for a single user."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            format: int32
+            type: integer
+        - name: parameterToChange
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: valueToSet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /books:
+    get:
+      tags:
+        - "books"
+      summary: "Getting all the books from the database."
+      responses:
+        "200":
+          description: OK
+    post:
+      tags:
+        - "books"
+      summary: "Adding a new book to the database."
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Book"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /books/filter/{logic}:
+    post:
+      tags:
+        - "books"
+      summary: "Getting books from the database that meet the given requirements."
+      parameters:
+        - name: logic
+          in: path
+          required: true
+          schema:
+            type: string
+          description: "'AND' or 'OR' depending on the output you want to get - 'AND' will return only records that meet all the
+          requirements, while 'OR' will return records that meet any of the requirements"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookRequirements"
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /books/{id}:
+    delete:
+      tags:
+        - "books"
+      summary: "Deleting a book from the database."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            format: int32
+            type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+  /books/{id}/{parameterToChange}?value={valueToSet}:
+    put:
+      tags:
+        - "books"
+      summary: "Changing given parameter for a single book."
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            format: int32
+            type: integer
+        - name: parameterToChange
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: valueToSet
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: App will output the error information.
+
+components:
+  schemas:
+    User:
+      type: "object"
+      required:
+        - "login"
+        - "email"
+        - "first_name"
+        - "last_name"
+        - "creation_date"
+      properties:
+        login:
+          type: "string"
+          example: "KasiaNowak2000"
+        email:
+          type: "string"
+          example: "kasianowak2000@gmail.com"
+        first_name:
+          type: "string"
+          example: "Katarzyna"
+        last_name:
+          type: "string"
+          example: "Nowak"
+        creation_date:
+          type: "string"
+          example: "2021-08-15"
+    UserRequirements:
+      type: "object"
+      properties:
+        login:
+          type: string
+          example: ["Adrian123"]
+        email:
+          type: string
+          example: ["adrian@gmail.com"]
+        first_name:
+          type: string
+          example: ["Adrian"]
+        last_name:
+          type: string
+          example: ["Ciesielczyk"]
+        creation_date:
+          type: string
+          example: ["2020-01-01"]
+    Book:
+      type: "object"
+      required:
+        - "title"
+        - "author"
+        - "is_taken"
+        - "taken_by"
+        - "taken_date"
+        - "return_date"
+      properties:
+        title:
+          type: "string"
+          example: "Odyseja"
+        author:
+          type: "string"
+          example: "Homer"
+        is_taken:
+          type: "boolean"
+          example: "false"
+        taken_by:
+          type: "string"
+          example: "1"
+        taken_date:
+          type: "string"
+          example: "2021-08-10"
+        return_date:
+          type: "string"
+          example: "2021-08-22"
+    BookRequirements:
+        type: "object"
+        properties:
+          ID_book:
+            type: "string"
+            example: [1]
+          title:
+            type: "string"
+            example: ["Krzyżacy"]
+          author:
+            type: "string"
+            example: ["Henryk Sienkiewicz"]
+          is_taken:
+            type: "string"
+            example: [true]
+          taken_by:
+            type: "string"
+            example: [1]
+          taken_date:
+            type: "string"
+            example: ["2021-08-08"]
+          return_date:
+            type: "string"
+            example: ["2021-08-21"]
