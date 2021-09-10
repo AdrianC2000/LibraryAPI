@@ -5,6 +5,7 @@ import data.messages.ReturnMessage;
 import data.Validators;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -12,7 +13,11 @@ import java.util.Map;
 
 @ApplicationScoped
 public class DatabaseHandler {
-    private static Connection connection = null;
+    private Connection connection = null;
+
+    @Inject
+    Parsers parsers;
+    Validators validators;
 
     public Connection getConnection() {
         return connection;
@@ -43,23 +48,23 @@ public class DatabaseHandler {
             String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
             if (parameter.contains("taken_by") && valueToSet != null) {
                 try {
-                    if (!Validators.resourceExistence(tableName, Integer.parseInt(valueToSet), connection)) {
-                        throw new SQLException("Database error: " + Parsers.resourceName(tableName) + " with the ID " + id + " does not exist.");
+                    if (!validators.resourceExistence(tableName, Integer.parseInt(valueToSet), connection)) {
+                        throw new SQLException("Database error: " + parsers.resourceName(tableName) + " with the ID " + id + " does not exist.");
                     }
                 } catch (NumberFormatException exc) {
                     throw new SQLException("Wrong taken by value format - it has to be an positive integer or null.");
                 }
             }
-            if (Validators.resourceExistence(tableName, id, connection)) {
+            if (validators.resourceExistence(tableName, id, connection)) {
                 PreparedStatement preparedStmt = connection.prepareStatement("UPDATE " + tableName + " SET " + parameter + " = ? WHERE " + IDname + " = ? ");
                 preparedStmt.setString(1, valueToSet);
                 preparedStmt.setInt(2, id);
                 preparedStmt.execute();
 
-                return new ReturnMessage("Parameter " + parameter + " changed for " + valueToSet + " for " + Parsers.resourceName(tableName).toLowerCase() + " with the id " + id + " correctly.", true);
+                return new ReturnMessage("Parameter " + parameter + " changed for " + valueToSet + " for " + parsers.resourceName(tableName).toLowerCase() + " with the id " + id + " correctly.", true);
             } else {
-                System.out.println(Validators.resourceExistence(tableName, id, connection));
-                return new ReturnMessage(Parsers.resourceName(tableName) + " with the id " + id + " does not exist.", false);
+                System.out.println(validators.resourceExistence(tableName, id, connection));
+                return new ReturnMessage(parsers.resourceName(tableName) + " with the id " + id + " does not exist.", false);
             }
         } catch (SQLException e) {
             return new ReturnMessage("Database error: " + e.getMessage(), false);
@@ -67,7 +72,7 @@ public class DatabaseHandler {
     }
 
     public ReturnMessage deleteResource(String tableName, Integer id) {
-            if (Validators.resourceExistence(tableName, id, connection)) {
+            if (validators.resourceExistence(tableName, id, connection)) {
                 try {
                     String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
 
@@ -80,7 +85,7 @@ public class DatabaseHandler {
                     return new ReturnMessage("Error: " + e.getMessage(),false);
                 }
             }
-            return new ReturnMessage(Parsers.resourceName(tableName) +
+            return new ReturnMessage(parsers.resourceName(tableName) +
                     " with the id " + id + " does not exist.", false);
         }
 

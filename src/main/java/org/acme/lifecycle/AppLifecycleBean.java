@@ -6,14 +6,18 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 
 @ApplicationScoped
 public class AppLifecycleBean {
 
-    private static final Logger LOGGER = Logger.getLogger("ListenerBean");
+    private final Logger LOGGER = Logger.getLogger("ListenerBean");
+
+    @Inject
+    DatabaseHandler databaseHandler;
 
     void onStart(@Observes StartupEvent ev) {
-        boolean result = DatabaseHandler.establishConnection();
+        boolean result = databaseHandler.establishConnection();
         if (result)
             LOGGER.info("Connection established correctly.");
         else {

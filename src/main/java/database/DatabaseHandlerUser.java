@@ -17,6 +17,8 @@ public class DatabaseHandlerUser {
 
     @Inject
     DatabaseHandler databaseHandler;
+    Parsers parsers;
+    Validators validators;
 
     private final Connection connection = databaseHandler.getConnection();
 
@@ -24,18 +26,18 @@ public class DatabaseHandlerUser {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
         System.out.println("querying SELECT * FROM " + tableName);
-        return new ReturnMessageUser("OK", Parsers.parseResultSetIntoUserList(result), true);
+        return new ReturnMessageUser("OK", parsers.parseResultSetIntoUserList(result), true);
     }
 
     public ReturnMessage addUser(String tableName, User newUser) {
-        boolean areFieldsValid = Validators.fieldsValidationUser(newUser);
+        boolean areFieldsValid = validators.fieldsValidationUser(newUser);
         if (areFieldsValid) {
             PreparedStatement preparedStmt;
             try {
                 String query = "INSERT INTO " + tableName + " (login, email, first_name, last_name, creation_date) VALUES (?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
-                System.out.println(Parsers.prepareUser(preparedStmt, newUser));
-                Parsers.prepareUser(preparedStmt, newUser).execute();
+                System.out.println(parsers.prepareUser(preparedStmt, newUser));
+                parsers.prepareUser(preparedStmt, newUser).execute();
                 System.out.println("querying INSERT INTO " + tableName);
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
@@ -48,9 +50,9 @@ public class DatabaseHandlerUser {
 
     public ReturnMessageUser filterUser(String tableName, UserRequirements allRequirements, String logic) {
         try {
-            HashMap<String, String[]> requirementsMap = Parsers.parseUserRequirementsIntoHashMap(allRequirements);
+            HashMap<String, String[]> requirementsMap = parsers.parseUserRequirementsIntoHashMap(allRequirements);
             ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
-            return new ReturnMessageUser("OK", Parsers.parseResultSetIntoUserList(result), true);
+            return new ReturnMessageUser("OK", parsers.parseResultSetIntoUserList(result), true);
         } catch (SQLException e) {
             e.printStackTrace();
             return new ReturnMessageUser("Database error: " + e.getMessage(), null, false);
