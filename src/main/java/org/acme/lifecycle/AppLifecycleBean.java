@@ -16,6 +16,9 @@ public class AppLifecycleBean {
     @Inject
     DatabaseHandler databaseHandler;
 
+    @Inject
+    DatabaseHandler databaseHandler;
+
     void onStart(@Observes StartupEvent ev) {
         boolean result = databaseHandler.establishConnection();
         if (result)
@@ -27,7 +30,7 @@ public class AppLifecycleBean {
     }
 
     /*void onStop(@Observes ShutdownEvent ev) {
-        *//*DatabaseHandler.closeConnection();*//*
+        *//*databaseHandler.closeConnection();*//*
         LOGGER.info("Connection with the database closed.");
         System.exit(0);
     }*/
