@@ -26,12 +26,14 @@ public class ResourceUser {
 
     @Inject
     Validator validator;
+    DatabaseHandler databaseHandler;
+    DatabaseHandlerUser databaseHandlerUser;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
         try {
-            ReturnMessageUser response = DatabaseHandlerUser.getUsers(tableName);
+            ReturnMessageUser response = databaseHandlerUser.getUsers(tableName);
             if (response.isValid()) {
                 return Response.ok(response.getResult()).build();
             } else {
@@ -50,7 +52,7 @@ public class ResourceUser {
         Set<ConstraintViolation<User>> violations = validator.validate(newUser);
 
         if (violations.isEmpty()) {
-            ReturnMessage response = DatabaseHandlerUser.addUser(tableName, newUser);
+            ReturnMessage response = databaseHandlerUser.addUser(tableName, newUser);
             if (response.isValid()) {
                 return Response.ok(response.getMessage()).build();
             } else {
@@ -86,7 +88,7 @@ public class ResourceUser {
         }
 
         if (violations.isEmpty()) {
-            ReturnMessage response = DatabaseHandler.updateResource(tableName, id, param, valueToSet);
+            ReturnMessage response = databaseHandler.updateResource(tableName, id, param, valueToSet);
             if (response.isValid()) {
                 return Response.ok(response.getMessage()).build();
             } else
@@ -105,7 +107,7 @@ public class ResourceUser {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
-        ReturnMessage response = DatabaseHandler.deleteResource(tableName, id);
+        ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
             return Response.ok(response.getMessage()).build();
         } else {
@@ -124,7 +126,7 @@ public class ResourceUser {
         if (!logic.equals("AND") && !logic.equals("OR")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
         }
-        ReturnMessageUser response = DatabaseHandlerUser.filterUser(tableName, requirements, logic);
+        ReturnMessageUser response = databaseHandlerUser.filterUser(tableName, requirements, logic);
         if (response.isValid()) {
             if (response.getResult().isEmpty()) {
                 return Response.ok("There are not any records fulfilling your requirements. " +

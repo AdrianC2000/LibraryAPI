@@ -25,12 +25,14 @@ public class ResourceBook {
 
     @Inject
     Validator validator;
+    DatabaseHandler databaseHandler;
+    DatabaseHandlerBook databaseHandlerBook;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
         try {
-            ReturnMessageBook response = DatabaseHandlerBook.getBooks(tableName);
+            ReturnMessageBook response = databaseHandlerBook.getBooks(tableName);
             if (response.isValid()) {
                 return Response.ok(response.getResult()).build();
             } else {
@@ -49,7 +51,7 @@ public class ResourceBook {
         Set<ConstraintViolation<Book>> violations = validator.validate(newBook);
 
         if (violations.isEmpty()) {
-            ReturnMessage response = DatabaseHandlerBook.addBook(tableName, newBook);
+            ReturnMessage response = databaseHandlerBook.addBook(tableName, newBook);
             if (response.isValid()) {
                 return Response.ok(response.getMessage()).build();
             } else {
@@ -85,7 +87,7 @@ public class ResourceBook {
         }
 
         if (violations.isEmpty()) {
-            ReturnMessage response = DatabaseHandler.updateResource(tableName, id, param, valueToSet);
+            ReturnMessage response = databaseHandler.updateResource(tableName, id, param, valueToSet);
             if (response.isValid()) {
                 return Response.ok(response.getMessage()).build();
             } else
@@ -104,7 +106,7 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
-        ReturnMessage response = DatabaseHandler.deleteResource(tableName, id);
+        ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
             return Response.ok(response.getMessage()).build();
         } else {
@@ -120,7 +122,7 @@ public class ResourceBook {
         if (!logic.equals("AND") && !logic.equals("OR")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
         }
-        ReturnMessageBook response = DatabaseHandlerBook.filterBook(tableName, requirements, logic);
+        ReturnMessageBook response = databaseHandlerBook.filterBook(tableName, requirements, logic);
         if (response.isValid()) {
             if (response.getResult().isEmpty()) {
                 return Response.ok("There are not any records fulfilling your requirements. " +

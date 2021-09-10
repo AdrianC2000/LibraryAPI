@@ -4,19 +4,21 @@ import data.Parsers;
 import data.messages.ReturnMessage;
 import data.Validators;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.sql.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+@ApplicationScoped
 public class DatabaseHandler {
     private static Connection connection = null;
 
-    public static Connection getConnection() {
+    public Connection getConnection() {
         return connection;
     }
 
-    public static boolean establishConnection() {
+    public boolean establishConnection() {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             String url = "jdbc:mysql://localhost:3306/comarch_database";
@@ -30,7 +32,7 @@ public class DatabaseHandler {
         }
     }
 
-    public static ReturnMessage updateResource(String tableName, Integer id, String parameter, String valueToSet) {
+    public ReturnMessage updateResource(String tableName, Integer id, String parameter, String valueToSet) {
         if (parameter.contains("ID")) {
             return new ReturnMessage("You can't edit the ID field.", false);
         }
@@ -64,7 +66,7 @@ public class DatabaseHandler {
         }
     }
 
-    public static ReturnMessage deleteResource(String tableName, Integer id) {
+    public ReturnMessage deleteResource(String tableName, Integer id) {
             if (Validators.resourceExistence(tableName, id, connection)) {
                 try {
                     String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
@@ -82,7 +84,7 @@ public class DatabaseHandler {
                     " with the id " + id + " does not exist.", false);
         }
 
-    public static ResultSet filterResource(String tableName, String logic, HashMap<String, String[]> requirementsMap) throws SQLException {
+    public ResultSet filterResource(String tableName, String logic, HashMap<String, String[]> requirementsMap) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM " + tableName + " WHERE ");
         for (Map.Entry<String, String[]> entry : requirementsMap.entrySet()) {
             String parameter = entry.getKey();
@@ -128,7 +130,7 @@ public class DatabaseHandler {
         return preparedStmt.executeQuery();
     }
 
-    public static String closeConnection() {
+    public String closeConnection() {
         try {
             connection.close();
             return "Connection closed correctly.";

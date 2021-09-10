@@ -6,21 +6,27 @@ import data.messages.ReturnMessageBook;
 import models.Book;
 import models.BookRequirements;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.sql.*;
 import java.util.*;
 
+@ApplicationScoped
 public class DatabaseHandlerBook {
 
-    private static final Connection connection = DatabaseHandler.getConnection();
+    @Inject
+    DatabaseHandler databaseHandler;
 
-    public static ReturnMessageBook getBooks(String tableName) throws SQLException {
+    private final Connection connection = databaseHandler.getConnection();
+
+    public ReturnMessageBook getBooks(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
         System.out.println("querying SELECT * FROM " + tableName);
         return new ReturnMessageBook("OK", Parsers.parseResultSetIntoBookList(result), true);
     }
 
-    public static ReturnMessage addBook(String tableName, Book newBook) {
+    public ReturnMessage addBook(String tableName, Book newBook) {
         boolean areFieldsValid = Validators.fieldsValidationBook(newBook);
         if (areFieldsValid) {
             PreparedStatement preparedStmt;
@@ -39,10 +45,10 @@ public class DatabaseHandlerBook {
         }
     }
 
-    public static ReturnMessageBook filterBook(String tableName, BookRequirements allRequirements, String logic) {
+    public ReturnMessageBook filterBook(String tableName, BookRequirements allRequirements, String logic) {
         try {
             HashMap<String, String[]> requirementsMap = Parsers.parseBookRequirementsIntoHashMap(allRequirements);
-            ResultSet result = DatabaseHandler.filterResource(tableName, logic, requirementsMap);
+            ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
             return new ReturnMessageBook("OK", Parsers.parseResultSetIntoBookList(result), true);
         } catch (SQLException e) {
             e.printStackTrace();

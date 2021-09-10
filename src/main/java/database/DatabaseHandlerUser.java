@@ -6,22 +6,28 @@ import data.messages.ReturnMessageUser;
 import data.Validators;
 import models.User;
 import models.UserRequirements;
+import javax.inject.Inject;
 
+import javax.enterprise.context.ApplicationScoped;
 import java.sql.*;
 import java.util.*;
 
+@ApplicationScoped
 public class DatabaseHandlerUser {
 
-    private static final Connection connection = DatabaseHandler.getConnection();
+    @Inject
+    DatabaseHandler databaseHandler;
 
-    public static ReturnMessageUser getUsers(String tableName) throws SQLException {
+    private final Connection connection = databaseHandler.getConnection();
+
+    public ReturnMessageUser getUsers(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
         System.out.println("querying SELECT * FROM " + tableName);
         return new ReturnMessageUser("OK", Parsers.parseResultSetIntoUserList(result), true);
     }
 
-    public static ReturnMessage addUser(String tableName, User newUser) {
+    public ReturnMessage addUser(String tableName, User newUser) {
         boolean areFieldsValid = Validators.fieldsValidationUser(newUser);
         if (areFieldsValid) {
             PreparedStatement preparedStmt;
@@ -40,10 +46,10 @@ public class DatabaseHandlerUser {
         }
     }
 
-    public static ReturnMessageUser filterUser(String tableName, UserRequirements allRequirements, String logic) {
+    public ReturnMessageUser filterUser(String tableName, UserRequirements allRequirements, String logic) {
         try {
             HashMap<String, String[]> requirementsMap = Parsers.parseUserRequirementsIntoHashMap(allRequirements);
-            ResultSet result = DatabaseHandler.filterResource(tableName, logic, requirementsMap);
+            ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
             return new ReturnMessageUser("OK", Parsers.parseResultSetIntoUserList(result), true);
         } catch (SQLException e) {
             e.printStackTrace();
