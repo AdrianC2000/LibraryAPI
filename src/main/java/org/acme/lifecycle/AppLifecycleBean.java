@@ -16,9 +16,6 @@ public class AppLifecycleBean {
     @Inject
     DatabaseHandler databaseHandler;
 
-    @Inject
-    DatabaseHandler databaseHandler;
-
     void onStart(@Observes StartupEvent ev) {
         boolean result = databaseHandler.establishConnection();
         if (result)
