@@ -16,6 +16,8 @@ public class DatabaseHandlerBook {
 
     @Inject
     DatabaseHandler databaseHandler;
+    Parsers parsers;
+    Validators validators;
 
     private final Connection connection = databaseHandler.getConnection();
 
@@ -23,18 +25,18 @@ public class DatabaseHandlerBook {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
         System.out.println("querying SELECT * FROM " + tableName);
-        return new ReturnMessageBook("OK", Parsers.parseResultSetIntoBookList(result), true);
+        return new ReturnMessageBook("OK", parsers.parseResultSetIntoBookList(result), true);
     }
 
     public ReturnMessage addBook(String tableName, Book newBook) {
-        boolean areFieldsValid = Validators.fieldsValidationBook(newBook);
+        boolean areFieldsValid = validators.fieldsValidationBook(newBook);
         if (areFieldsValid) {
             PreparedStatement preparedStmt;
             try {
                 String query = "INSERT INTO " + tableName + " (title, author, is_taken, taken_by, taken_date, return_date) VALUES (?, ?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
-                System.out.println(Parsers.prepareBook(preparedStmt, newBook));
-                Parsers.prepareBook(preparedStmt, newBook).execute();
+                System.out.println(parsers.prepareBook(preparedStmt, newBook));
+                parsers.prepareBook(preparedStmt, newBook).execute();
                 System.out.println("querying INSERT INTO " + tableName);
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
@@ -47,9 +49,9 @@ public class DatabaseHandlerBook {
 
     public ReturnMessageBook filterBook(String tableName, BookRequirements allRequirements, String logic) {
         try {
-            HashMap<String, String[]> requirementsMap = Parsers.parseBookRequirementsIntoHashMap(allRequirements);
+            HashMap<String, String[]> requirementsMap = parsers.parseBookRequirementsIntoHashMap(allRequirements);
             ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
-            return new ReturnMessageBook("OK", Parsers.parseResultSetIntoBookList(result), true);
+            return new ReturnMessageBook("OK", parsers.parseResultSetIntoBookList(result), true);
         } catch (SQLException e) {
             e.printStackTrace();
             return new ReturnMessageBook("Database error: " + e.getMessage(), null, false);

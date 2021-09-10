@@ -7,6 +7,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.sql.*;
@@ -17,7 +18,10 @@ import java.util.Set;
 @ApplicationScoped
 public class Validators {
 
-    public static boolean resourceExistence(String table, Integer id, Connection connection) {
+    @Inject
+    Parsers parsers;
+
+    public boolean resourceExistence(String table, Integer id, Connection connection) {
         // If SQLException appears, ID does not exist
         try {
             String IDname = "ID_" + table.substring(0, table.length() - 1);
@@ -31,9 +35,9 @@ public class Validators {
         }
     }
 
-    public static boolean fieldsValidationUser (User newUser) {
+    public boolean fieldsValidationUser (User newUser) {
         Field[] fields = User.class.getDeclaredFields();
-        ArrayList<String> fieldsList = Parsers.parseFieldsArrayIntoStringList(fields);
+        ArrayList<String> fieldsList = parsers.parseFieldsArrayIntoStringList(fields);
 
         Gson gson = new GsonBuilder().create();
         String tmp = gson.toJson(newUser);
@@ -64,9 +68,9 @@ public class Validators {
         return true;
     }
 
-    public static boolean fieldsValidationBook (Book newBook) {
+    public boolean fieldsValidationBook (Book newBook) {
         Field[] fields = Book.class.getDeclaredFields();
-        ArrayList<String> fieldsList = Parsers.parseFieldsArrayIntoStringList(fields);
+        ArrayList<String> fieldsList = parsers.parseFieldsArrayIntoStringList(fields);
 
         Gson gson = new GsonBuilder().create();
         String tmp = gson.toJson(newBook);
