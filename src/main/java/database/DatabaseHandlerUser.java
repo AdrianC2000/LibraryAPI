@@ -17,10 +17,18 @@ public class DatabaseHandlerUser {
 
     @Inject
     DatabaseHandler databaseHandler;
+
+    @Inject
     Parsers parsers;
+
+    @Inject
     Validators validators;
 
-    private final Connection connection = databaseHandler.getConnection();
+    private Connection connection;
+
+    public void setConnection(Connection connection) {
+        this.connection = connection;
+    }
 
     public ReturnMessageUser getUsers(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();

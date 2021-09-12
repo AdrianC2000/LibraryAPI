@@ -26,7 +26,11 @@ public class ResourceUser {
 
     @Inject
     Validator validator;
+
+    @Inject
     DatabaseHandler databaseHandler;
+
+    @Inject
     DatabaseHandlerUser databaseHandlerUser;
 
     @GET

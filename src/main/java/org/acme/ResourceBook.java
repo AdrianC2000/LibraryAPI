@@ -25,7 +25,11 @@ public class ResourceBook {
 
     @Inject
     Validator validator;
+
+    @Inject
     DatabaseHandler databaseHandler;
+
+    @Inject
     DatabaseHandlerBook databaseHandlerBook;
 
     @GET

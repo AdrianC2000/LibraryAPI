@@ -13,10 +13,18 @@ import java.util.Map;
 
 @ApplicationScoped
 public class DatabaseHandler {
-    private Connection connection = null;
+    private static Connection connection = null;
+
+    @Inject
+    DatabaseHandlerUser databaseHandlerUser;
+
+    @Inject
+    DatabaseHandlerBook databaseHandlerBook;
 
     @Inject
     Parsers parsers;
+
+    @Inject
     Validators validators;
 
     public Connection getConnection() {
@@ -30,6 +38,8 @@ public class DatabaseHandler {
             String user = "Adi";
             String password = "DatabasePassword123";
             connection = DriverManager.getConnection(url, user, password);
+            databaseHandlerUser.setConnection(connection);
+            databaseHandlerBook.setConnection(connection);
             return true;
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
