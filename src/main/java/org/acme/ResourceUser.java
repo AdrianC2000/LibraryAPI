@@ -6,8 +6,12 @@ import database.DatabaseHandler;
 import database.DatabaseHandlerUser;
 import models.User;
 import models.UserRequirements;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.gradle.internal.impldep.org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -19,10 +23,15 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Set;
 
+@ApplicationScoped
 @Path("/users")
 public class ResourceUser {
 
-    private static final String tableName = "users";
+    @ConfigProperty(name = "userTable")
+    String tableName;
+
+    @Inject
+    Logger logger;
 
     @Inject
     Validator validator;
@@ -36,14 +45,17 @@ public class ResourceUser {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
+        logger.info("Trying to get all the users.");
         try {
             ReturnMessageUser response = databaseHandlerUser.getUsers(tableName);
             if (response.isValid()) {
+                logger.info("Got all the users successfully.");
                 return Response.ok(response.getResult()).build();
             } else {
                 return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
             }
         } catch (SQLException e) {
+            logger.info("Database Error: " + e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST).entity("Database Error: " + e.getMessage()).build();
         }
     }
@@ -52,9 +64,8 @@ public class ResourceUser {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createResource(User newUser) {
-
+        logger.info("Trying to create a new user.");
         Set<ConstraintViolation<User>> violations = validator.validate(newUser);
-
         if (violations.isEmpty()) {
             ReturnMessage response = databaseHandlerUser.addUser(tableName, newUser);
             if (response.isValid()) {
@@ -79,15 +90,15 @@ public class ResourceUser {
             @PathParam("id") Integer id,
             @PathParam("parameterToChange") String param,
             @QueryParam("value") String valueToSet) {
-
+        logger.info("Trying to update the user with the id " + id + ".");
         Set<ConstraintViolation<User>> violations;
-
         try {
             User newUser = new User(null, null, null, null, null, null);
             Method method = User.class.getDeclaredMethod("set" + param.substring(0, 1).toUpperCase() + param.substring(1), String.class);
             method.invoke(newUser, valueToSet);
             violations = validator.validate(newUser);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            logger.error(e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST).entity("Format error: Wrong parameter name.").build();
         }
 
@@ -111,6 +122,7 @@ public class ResourceUser {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
+        logger.info("Trying to delete the user with the id " + id + ".");
         ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
             return Response.ok(response.getMessage()).build();
@@ -124,9 +136,7 @@ public class ResourceUser {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response filterResources(@PathParam("logic") String logic, UserRequirements requirements) {
-        System.out.println("---------LOOK HERE-----------");
-        System.out.println(ReflectionToStringBuilder.toString(requirements));
-        System.out.println("--------------------");
+        logger.info("Trying to filter the users set.");
         if (!logic.equals("AND") && !logic.equals("OR")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
         }

@@ -5,6 +5,7 @@ import data.messages.ReturnMessage;
 import data.messages.ReturnMessageBook;
 import models.Book;
 import models.BookRequirements;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,6 +16,12 @@ import java.util.*;
 public class DatabaseHandlerBook {
 
     @Inject
+    Connection connection;
+
+    @Inject
+    Logger logger;
+
+    @Inject
     DatabaseHandler databaseHandler;
 
     @Inject
@@ -23,8 +30,6 @@ public class DatabaseHandlerBook {
     @Inject
     Validators validators;
 
-    private Connection connection;
-
     public void setConnection(Connection connection) {
         this.connection = connection;
     }
@@ -32,7 +37,7 @@ public class DatabaseHandlerBook {
     public ReturnMessageBook getBooks(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
-        System.out.println("querying SELECT * FROM " + tableName);
+        logger.info("querying SELECT * FROM " + tableName);
         return new ReturnMessageBook("OK", parsers.parseResultSetIntoBookList(result), true);
     }
 
@@ -43,14 +48,15 @@ public class DatabaseHandlerBook {
             try {
                 String query = "INSERT INTO " + tableName + " (title, author, is_taken, taken_by, taken_date, return_date) VALUES (?, ?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
-                System.out.println(parsers.prepareBook(preparedStmt, newBook));
                 parsers.prepareBook(preparedStmt, newBook).execute();
-                System.out.println("querying INSERT INTO " + tableName);
+                logger.info("querying INSERT INTO " + tableName);
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
+                logger.error(e.getMessage());
                 return new ReturnMessage("Database error: " + e.getMessage() + ".\nCheck your input for typos.", false);
             }
         } else {
+            logger.error("Invalid fields.");
             return new ReturnMessage("Fields error: Check your input for typos or forgotten parameters.", false);
         }
     }
@@ -61,7 +67,7 @@ public class DatabaseHandlerBook {
             ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
             return new ReturnMessageBook("OK", parsers.parseResultSetIntoBookList(result), true);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return new ReturnMessageBook("Database error: " + e.getMessage(), null, false);
         }
     }

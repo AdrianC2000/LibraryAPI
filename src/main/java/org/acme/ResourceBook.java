@@ -6,7 +6,11 @@ import database.DatabaseHandler;
 import database.DatabaseHandlerBook;
 import models.BookRequirements;
 import models.Book;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -18,10 +22,15 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Set;
 
+@ApplicationScoped
 @Path("/books")
 public class ResourceBook {
 
-    private static final String tableName = "books";
+    @ConfigProperty(name = "bookTable")
+    String tableName;
+
+    @Inject
+    Logger logger;
 
     @Inject
     Validator validator;
@@ -35,6 +44,7 @@ public class ResourceBook {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
+        logger.info("Trying to get all the books.");
         try {
             ReturnMessageBook response = databaseHandlerBook.getBooks(tableName);
             if (response.isValid()) {
@@ -51,9 +61,8 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createResource(Book newBook) {
-
+        logger.info("Trying to create a new book.");
         Set<ConstraintViolation<Book>> violations = validator.validate(newBook);
-
         if (violations.isEmpty()) {
             ReturnMessage response = databaseHandlerBook.addBook(tableName, newBook);
             if (response.isValid()) {
@@ -78,9 +87,8 @@ public class ResourceBook {
             @PathParam("id") Integer id,
             @PathParam("parameterToChange") String param,
             @QueryParam("value") String valueToSet) {
-
+        logger.info("Trying to update the book with the id " + id + ".");
         Set<ConstraintViolation<Book>> violations;
-
         try {
             Book newBook = new Book(null, null, null, null, null, null, null);
             Method method = Book.class.getDeclaredMethod("set" + param.substring(0, 1).toUpperCase() + param.substring(1), String.class);
@@ -110,6 +118,7 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
+        logger.info("Trying to delete the book with the id " + id + ".");
         ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
             return Response.ok(response.getMessage()).build();
@@ -123,6 +132,7 @@ public class ResourceBook {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response filterResources(@PathParam("logic") String logic, BookRequirements requirements) {
+        logger.info("Trying to filter the books set.");
         if (!logic.equals("AND") && !logic.equals("OR")) {
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
         }

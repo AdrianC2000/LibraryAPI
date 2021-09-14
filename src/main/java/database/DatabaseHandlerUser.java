@@ -7,6 +7,7 @@ import data.Validators;
 import models.User;
 import models.UserRequirements;
 import javax.inject.Inject;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import java.sql.*;
@@ -14,6 +15,12 @@ import java.util.*;
 
 @ApplicationScoped
 public class DatabaseHandlerUser {
+
+    @Inject
+    Connection connection;
+
+    @Inject
+    Logger logger;
 
     @Inject
     DatabaseHandler databaseHandler;
@@ -24,8 +31,6 @@ public class DatabaseHandlerUser {
     @Inject
     Validators validators;
 
-    private Connection connection;
-
     public void setConnection(Connection connection) {
         this.connection = connection;
     }
@@ -33,7 +38,7 @@ public class DatabaseHandlerUser {
     public ReturnMessageUser getUsers(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
-        System.out.println("querying SELECT * FROM " + tableName);
+        logger.info("querying SELECT * FROM " + tableName);
         return new ReturnMessageUser("OK", parsers.parseResultSetIntoUserList(result), true);
     }
 
@@ -44,14 +49,15 @@ public class DatabaseHandlerUser {
             try {
                 String query = "INSERT INTO " + tableName + " (login, email, first_name, last_name, creation_date) VALUES (?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
-                System.out.println(parsers.prepareUser(preparedStmt, newUser));
                 parsers.prepareUser(preparedStmt, newUser).execute();
-                System.out.println("querying INSERT INTO " + tableName);
+                logger.info("querying INSERT INTO " + tableName);
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
+                logger.error(e.getMessage());
                 return new ReturnMessage("Database error: " + e.getMessage() + ".\nCheck your input for typos.", false);
             }
         } else {
+            logger.error("Invalid fields.");
             return new ReturnMessage("Fields error: Check your input for typos or forgotten parameters.", false);
         }
     }
@@ -62,9 +68,8 @@ public class DatabaseHandlerUser {
             ResultSet result = databaseHandler.filterResource(tableName, logic, requirementsMap);
             return new ReturnMessageUser("OK", parsers.parseResultSetIntoUserList(result), true);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
             return new ReturnMessageUser("Database error: " + e.getMessage(), null, false);
         }
     }
-
 }

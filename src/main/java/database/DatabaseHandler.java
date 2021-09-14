@@ -3,6 +3,7 @@ package database;
 import data.Parsers;
 import data.messages.ReturnMessage;
 import data.Validators;
+import org.slf4j.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -13,7 +14,12 @@ import java.util.Map;
 
 @ApplicationScoped
 public class DatabaseHandler {
-    private static Connection connection = null;
+
+    @Inject
+    Connection connection;
+
+    @Inject
+    Logger logger;
 
     @Inject
     DatabaseHandlerUser databaseHandlerUser;
@@ -27,25 +33,6 @@ public class DatabaseHandler {
     @Inject
     Validators validators;
 
-    public Connection getConnection() {
-        return connection;
-    }
-
-    public boolean establishConnection() {
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            String url = "jdbc:mysql://localhost:3306/comarch_database";
-            String user = "Adi";
-            String password = "DatabasePassword123";
-            connection = DriverManager.getConnection(url, user, password);
-            databaseHandlerUser.setConnection(connection);
-            databaseHandlerBook.setConnection(connection);
-            return true;
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 
     public ReturnMessage updateResource(String tableName, Integer id, String parameter, String valueToSet) {
         if (parameter.contains("ID")) {
@@ -62,6 +49,7 @@ public class DatabaseHandler {
                         throw new SQLException("Database error: " + parsers.resourceName(tableName) + " with the ID " + id + " does not exist.");
                     }
                 } catch (NumberFormatException exc) {
+                    logger.error(exc.getMessage());
                     throw new SQLException("Wrong taken by value format - it has to be an positive integer or null.");
                 }
             }
@@ -73,7 +61,6 @@ public class DatabaseHandler {
 
                 return new ReturnMessage("Parameter " + parameter + " changed for " + valueToSet + " for " + parsers.resourceName(tableName).toLowerCase() + " with the id " + id + " correctly.", true);
             } else {
-                System.out.println(validators.resourceExistence(tableName, id, connection));
                 return new ReturnMessage(parsers.resourceName(tableName) + " with the id " + id + " does not exist.", false);
             }
         } catch (SQLException e) {
@@ -82,22 +69,22 @@ public class DatabaseHandler {
     }
 
     public ReturnMessage deleteResource(String tableName, Integer id) {
-            if (validators.resourceExistence(tableName, id, connection)) {
-                try {
-                    String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
+        if (validators.resourceExistence(tableName, id, connection)) {
+            try {
+                String IDname = "ID_" + tableName.substring(0, tableName.length() - 1);
 
-                    PreparedStatement preparedStmt = connection.prepareStatement("DELETE FROM " + tableName + " WHERE " + IDname + " = ?");
-                    preparedStmt.setInt(1, id);
-                    preparedStmt.execute();
-                    System.out.println("querying DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
-                    return new ReturnMessage("User with the id " + id + " deleted correctly.",true);
-                } catch (SQLException e) {
-                    return new ReturnMessage("Error: " + e.getMessage(),false);
-                }
+                PreparedStatement preparedStmt = connection.prepareStatement("DELETE FROM " + tableName + " WHERE " + IDname + " = ?");
+                preparedStmt.setInt(1, id);
+                preparedStmt.execute();
+                System.out.println("querying DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
+                return new ReturnMessage("User with the id " + id + " deleted correctly.", true);
+            } catch (SQLException e) {
+                return new ReturnMessage("Error: " + e.getMessage(), false);
             }
-            return new ReturnMessage(parsers.resourceName(tableName) +
-                    " with the id " + id + " does not exist.", false);
         }
+        return new ReturnMessage(parsers.resourceName(tableName) +
+                " with the id " + id + " does not exist.", false);
+    }
 
     public ResultSet filterResource(String tableName, String logic, HashMap<String, String[]> requirementsMap) throws SQLException {
         StringBuilder query = new StringBuilder("SELECT * FROM " + tableName + " WHERE ");
@@ -140,8 +127,8 @@ public class DatabaseHandler {
                     index++;
                 }
             }
-            System.out.println(preparedStmt);
         }
+        logger.info("querying " + preparedStmt);
         return preparedStmt.executeQuery();
     }
 
