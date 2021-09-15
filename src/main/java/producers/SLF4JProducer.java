@@ -10,7 +10,6 @@ public class SLF4JProducer {
 
     @Produces
     public Logger producer(InjectionPoint ip){
-        return LoggerFactory.getLogger(
-                ip.getMember().getDeclaringClass().getName());
+        return LoggerFactory.getLogger(ip.getMember().getDeclaringClass().getName());
     }
 }

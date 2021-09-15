@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.sql.*;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,12 +19,6 @@ public class DatabaseHandler {
 
     @Inject
     Logger logger;
-
-    @Inject
-    DatabaseHandlerUser databaseHandlerUser;
-
-    @Inject
-    DatabaseHandlerBook databaseHandlerBook;
 
     @Inject
     Parsers parsers;
@@ -64,6 +57,7 @@ public class DatabaseHandler {
                 return new ReturnMessage(parsers.resourceName(tableName) + " with the id " + id + " does not exist.", false);
             }
         } catch (SQLException e) {
+            logger.error(e.getMessage());
             return new ReturnMessage("Database error: " + e.getMessage(), false);
         }
     }
@@ -76,9 +70,10 @@ public class DatabaseHandler {
                 PreparedStatement preparedStmt = connection.prepareStatement("DELETE FROM " + tableName + " WHERE " + IDname + " = ?");
                 preparedStmt.setInt(1, id);
                 preparedStmt.execute();
-                System.out.println("querying DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
+                logger.info("querying DELETE FROM " + tableName + " WHERE " + IDname + " = " + id);
                 return new ReturnMessage("User with the id " + id + " deleted correctly.", true);
             } catch (SQLException e) {
+                logger.error(e.getMessage());
                 return new ReturnMessage("Error: " + e.getMessage(), false);
             }
         }
@@ -92,8 +87,6 @@ public class DatabaseHandler {
             String parameter = entry.getKey();
             String[] values = entry.getValue();
             if (values != null) {
-                System.out.println(parameter);
-                System.out.println(Arrays.toString(values));
                 if (values.length > 1) {
                     for (int i = 0; i < values.length; i++) {
                         if (i == 0) {
@@ -132,12 +125,4 @@ public class DatabaseHandler {
         return preparedStmt.executeQuery();
     }
 
-    public String closeConnection() {
-        try {
-            connection.close();
-            return "Connection closed correctly.";
-        } catch (NullPointerException | SQLException e) {
-            return "An error occurred during closing the connection";
-        }
-    }
 }

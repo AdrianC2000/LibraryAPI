@@ -31,10 +31,6 @@ public class DatabaseHandlerUser {
     @Inject
     Validators validators;
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
     public ReturnMessageUser getUsers(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
@@ -50,7 +46,7 @@ public class DatabaseHandlerUser {
                 String query = "INSERT INTO " + tableName + " (login, email, first_name, last_name, creation_date) VALUES (?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
                 parsers.prepareUser(preparedStmt, newUser).execute();
-                logger.info("querying INSERT INTO " + tableName);
+                logger.info("querying " + preparedStmt);
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
                 logger.error(e.getMessage());

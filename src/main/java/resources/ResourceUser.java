@@ -1,14 +1,13 @@
-package org.acme;
+package resources;
 
 import data.messages.ReturnMessage;
-import data.messages.ReturnMessageBook;
+import data.messages.ReturnMessageUser;
 import database.DatabaseHandler;
-import database.DatabaseHandlerBook;
-import models.BookRequirements;
-import models.Book;
+import database.DatabaseHandlerUser;
+import models.User;
+import models.UserRequirements;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -23,10 +22,10 @@ import java.sql.SQLException;
 import java.util.Set;
 
 @ApplicationScoped
-@Path("/books")
-public class ResourceBook {
+@Path("/users")
+public class ResourceUser {
 
-    @ConfigProperty(name = "bookTable")
+    @ConfigProperty(name = "userTable")
     String tableName;
 
     @Inject
@@ -39,20 +38,22 @@ public class ResourceBook {
     DatabaseHandler databaseHandler;
 
     @Inject
-    DatabaseHandlerBook databaseHandlerBook;
+    DatabaseHandlerUser databaseHandlerUser;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
-        logger.info("Trying to get all the books.");
+        logger.info("Trying to get all the users.");
         try {
-            ReturnMessageBook response = databaseHandlerBook.getBooks(tableName);
+            ReturnMessageUser response = databaseHandlerUser.getUsers(tableName);
             if (response.isValid()) {
+                logger.info("Got all the users successfully.");
                 return Response.ok(response.getResult()).build();
             } else {
                 return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
             }
         } catch (SQLException e) {
+            logger.error(e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST).entity("Database Error: " + e.getMessage()).build();
         }
     }
@@ -60,21 +61,23 @@ public class ResourceBook {
     @POST
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createResource(Book newBook) {
-        logger.info("Trying to create a new book.");
-        Set<ConstraintViolation<Book>> violations = validator.validate(newBook);
+    public Response createResource(User newUser) {
+        logger.info("Trying to create a new user.");
+        Set<ConstraintViolation<User>> violations = validator.validate(newUser);
         if (violations.isEmpty()) {
-            ReturnMessage response = databaseHandlerBook.addBook(tableName, newBook);
+            ReturnMessage response = databaseHandlerUser.addUser(tableName, newUser);
             if (response.isValid()) {
+                logger.info("User added correctly.");
                 return Response.ok(response.getMessage()).build();
             } else {
                 return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
             }
         } else {
             StringBuilder violationsString = new StringBuilder();
-            for (ConstraintViolation<Book> book : violations) {
-                violationsString.append(" ").append(book.getMessage()).append("\n");
+            for (ConstraintViolation<User> user : violations) {
+                violationsString.append(" ").append(user.getMessage()).append("\n");
             }
+            logger.error(violationsString.toString());
             return Response.status(Response.Status.BAD_REQUEST).entity(violationsString.toString()).build();
         }
     }
@@ -87,28 +90,31 @@ public class ResourceBook {
             @PathParam("id") Integer id,
             @PathParam("parameterToChange") String param,
             @QueryParam("value") String valueToSet) {
-        logger.info("Trying to update the book with the id " + id + ".");
-        Set<ConstraintViolation<Book>> violations;
+        logger.info("Trying to update the user with the id " + id + ".");
+        Set<ConstraintViolation<User>> violations;
         try {
-            Book newBook = new Book(null, null, null, null, null, null, null);
-            Method method = Book.class.getDeclaredMethod("set" + param.substring(0, 1).toUpperCase() + param.substring(1), String.class);
-            method.invoke(newBook, valueToSet);
-            violations = validator.validate(newBook);
+            User newUser = new User(null, null, null, null, null, null);
+            Method method = User.class.getDeclaredMethod("set" + param.substring(0, 1).toUpperCase() + param.substring(1), String.class);
+            method.invoke(newUser, valueToSet);
+            violations = validator.validate(newUser);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            logger.error(e.getMessage());
             return Response.status(Response.Status.BAD_REQUEST).entity("Format error: Wrong parameter name.").build();
         }
 
         if (violations.isEmpty()) {
             ReturnMessage response = databaseHandler.updateResource(tableName, id, param, valueToSet);
             if (response.isValid()) {
+                logger.info("User with the id " + id + " updated successfully.");
                 return Response.ok(response.getMessage()).build();
             } else
                 return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
         } else {
             StringBuilder violationsString = new StringBuilder();
-            for (ConstraintViolation<Book> book : violations) {
-                violationsString.append(" ").append(book.getMessage()).append("\n");
+            for (ConstraintViolation<User> user : violations) {
+                violationsString.append(" ").append(user.getMessage()).append("\n");
             }
+            logger.error(violationsString.toString());
             return Response.status(Response.Status.BAD_REQUEST).entity(violationsString.toString()).build();
         }
     }
@@ -118,9 +124,10 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
-        logger.info("Trying to delete the book with the id " + id + ".");
+        logger.info("Trying to delete the user with the id " + id + ".");
         ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
+            logger.info(response.getMessage());
             return Response.ok(response.getMessage()).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
@@ -131,13 +138,15 @@ public class ResourceBook {
     @Path("/filter/{logic}")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response filterResources(@PathParam("logic") String logic, BookRequirements requirements) {
-        logger.info("Trying to filter the books set.");
+    public Response filterResources(@PathParam("logic") String logic, UserRequirements requirements) {
+        logger.info("Trying to filter the users set.");
         if (!logic.equals("AND") && !logic.equals("OR")) {
+            logger.error("Wrong logic name.");
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
         }
-        ReturnMessageBook response = databaseHandlerBook.filterBook(tableName, requirements, logic);
+        ReturnMessageUser response = databaseHandlerUser.filterUser(tableName, requirements, logic);
         if (response.isValid()) {
+            logger.info("Users set filtered correctly.");
             if (response.getResult().isEmpty()) {
                 return Response.ok("There are not any records fulfilling your requirements. " +
                         "Check your input for typos or change your requirements.").build();

@@ -30,10 +30,6 @@ public class DatabaseHandlerBook {
     @Inject
     Validators validators;
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
-    }
-
     public ReturnMessageBook getBooks(String tableName) throws SQLException {
         Statement stmt = connection.createStatement();
         ResultSet result = stmt.executeQuery("SELECT * FROM " + tableName);
