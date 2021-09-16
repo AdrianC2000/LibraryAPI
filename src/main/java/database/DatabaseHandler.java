@@ -50,7 +50,7 @@ public class DatabaseHandler {
                 preparedStmt.setString(1, valueToSet);
                 preparedStmt.setInt(2, id);
                 preparedStmt.execute();
-
+                logger.info("Querying " + parsers.getQuery(preparedStmt));
                 return new ReturnMessage("Parameter " + parameter + " changed for " + valueToSet + " for " + parsers.resourceName(tableName).toLowerCase() + " with the id " + id + " correctly.", true);
             } else {
                 return new ReturnMessage(parsers.resourceName(tableName) + " with the id " + id + " does not exist.", false);
@@ -97,10 +97,9 @@ public class DatabaseHandler {
                         }
                     }
                 } else {
-                    query.append(parameter).append(" IN (?) ");
+                    query.append(parameter).append(" IN (?)");
                 }
                 query.append(" ").append(logic).append(" ");
-                System.out.println(query);
             }
         }
         String queryString = "";
@@ -120,7 +119,7 @@ public class DatabaseHandler {
                 }
             }
         }
-        logger.info("querying " + preparedStmt);
+        logger.info("Querying " + parsers.getQuery(preparedStmt));
         return preparedStmt.executeQuery();
     }
 

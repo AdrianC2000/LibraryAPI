@@ -41,7 +41,7 @@ public class ResourceBook {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
-        logger.info("Trying to get all the books.");
+        logger.info("GET -> Trying to get all the books.");
         try {
             ReturnMessageBook response = databaseHandlerBook.getBooks(tableName);
             if (response.isValid()) {
@@ -60,11 +60,12 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createResource(Book newBook) {
-        logger.info("Trying to create a new book.");
+        logger.info("POST -> Trying to create a new book.");
         Set<ConstraintViolation<Book>> violations = validator.validate(newBook);
         if (violations.isEmpty()) {
             ReturnMessage response = databaseHandlerBook.addBook(tableName, newBook);
             if (response.isValid()) {
+                logger.info("Book added correctly.");
                 return Response.ok(response.getMessage()).build();
             } else {
                 return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
@@ -87,7 +88,7 @@ public class ResourceBook {
             @PathParam("id") Integer id,
             @PathParam("parameterToChange") String param,
             @QueryParam("value") String valueToSet) {
-        logger.info("Trying to update the book with the id " + id + ".");
+        logger.info("PUT -> Trying to update the book with the id " + id + ".");
         Set<ConstraintViolation<Book>> violations;
         try {
             Book newBook = new Book(null, null, null, null, null, null, null);
@@ -121,9 +122,10 @@ public class ResourceBook {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
-        logger.info("Trying to delete the book with the id " + id + ".");
+        logger.info("DELETE -> Trying to delete the book with the id " + id + ".");
         ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
+            logger.info(response.getMessage());
             return Response.ok(response.getMessage()).build();
         } else {
             return Response.status(Response.Status.BAD_REQUEST).entity(response.getMessage()).build();
@@ -135,7 +137,7 @@ public class ResourceBook {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response filterResources(@PathParam("logic") String logic, BookRequirements requirements) {
-        logger.info("Trying to filter the books set.");
+        logger.info("POST -> Trying to filter the books set.");
         if (!logic.equals("AND") && !logic.equals("OR")) {
             logger.error("Wrong logic name.");
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();

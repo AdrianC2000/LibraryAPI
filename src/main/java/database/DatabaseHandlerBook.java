@@ -45,7 +45,7 @@ public class DatabaseHandlerBook {
                 String query = "INSERT INTO " + tableName + " (title, author, is_taken, taken_by, taken_date, return_date) VALUES (?, ?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
                 parsers.prepareBook(preparedStmt, newBook).execute();
-                logger.info("querying INSERT INTO " + tableName);
+                logger.info("Querying " + parsers.getQuery(preparedStmt));
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
                 logger.error(e.getMessage());

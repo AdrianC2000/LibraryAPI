@@ -41,7 +41,7 @@ public class ResourceUser {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRecords() {
-        logger.info("Trying to get all the users.");
+        logger.info("GET -> Trying to get all the users.");
         try {
             ReturnMessageUser response = databaseHandlerUser.getUsers(tableName);
             if (response.isValid()) {
@@ -60,7 +60,7 @@ public class ResourceUser {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createResource(User newUser) {
-        logger.info("Trying to create a new user.");
+        logger.info("POST -> Trying to create a new user.");
         Set<ConstraintViolation<User>> violations = validator.validate(newUser);
         if (violations.isEmpty()) {
             ReturnMessage response = databaseHandlerUser.addUser(tableName, newUser);
@@ -88,7 +88,7 @@ public class ResourceUser {
             @PathParam("id") Integer id,
             @PathParam("parameterToChange") String param,
             @QueryParam("value") String valueToSet) {
-        logger.info("Trying to update the user with the id " + id + ".");
+        logger.info("PUT -> Trying to update the user with the id " + id + ".");
         Set<ConstraintViolation<User>> violations;
         try {
             User newUser = new User(null, null, null, null, null, null);
@@ -122,7 +122,7 @@ public class ResourceUser {
     @Produces(MediaType.TEXT_PLAIN)
     @Consumes(MediaType.TEXT_PLAIN)
     public Response deleteResource(@PathParam("id") Integer id) {
-        logger.info("Trying to delete the user with the id " + id + ".");
+        logger.info("DELETE -> Trying to delete the user with the id " + id + ".");
         ReturnMessage response = databaseHandler.deleteResource(tableName, id);
         if (response.isValid()) {
             logger.info(response.getMessage());
@@ -137,7 +137,7 @@ public class ResourceUser {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response filterResources(@PathParam("logic") String logic, UserRequirements requirements) {
-        logger.info("Trying to filter the users set.");
+        logger.info("POST -> Trying to filter the users set.");
         if (!logic.equals("AND") && !logic.equals("OR")) {
             logger.error("Wrong logic name.");
             return Response.status(Response.Status.BAD_REQUEST).entity("URL error: Wrong logic name.").build();
