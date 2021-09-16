@@ -141,4 +141,9 @@ public class Parsers {
         String resource = tableName.substring(0, tableName.length() - 1);
         return resource.substring(0, 1).toUpperCase() + resource.substring(1);
     }
+
+    public String getQuery(PreparedStatement fullMess) {
+        int index = fullMess.toString().indexOf(" ") + 1;
+        return fullMess.toString().substring(index);
+    }
 }

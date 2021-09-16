@@ -46,7 +46,7 @@ public class DatabaseHandlerUser {
                 String query = "INSERT INTO " + tableName + " (login, email, first_name, last_name, creation_date) VALUES (?, ?, ?, ?, ?)";
                 preparedStmt = connection.prepareStatement(query);
                 parsers.prepareUser(preparedStmt, newUser).execute();
-                logger.info("querying " + preparedStmt);
+                logger.info("Querying " + parsers.getQuery(preparedStmt));
                 return new ReturnMessage("Resource added correctly.", true);
             } catch (SQLException e) {
                 logger.error(e.getMessage());

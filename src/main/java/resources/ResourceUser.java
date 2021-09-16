@@ -9,7 +9,6 @@ import models.UserRequirements;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -21,7 +20,6 @@ import java.lang.reflect.Method;
 import java.sql.SQLException;
 import java.util.Set;
 
-@ApplicationScoped
 @Path("/users")
 public class ResourceUser {
 
@@ -54,7 +52,7 @@ public class ResourceUser {
             }
         } catch (SQLException e) {
             logger.error(e.getMessage());
-            return Response.status(Response.Status.BAD_REQUEST).entity("Database Error: " + e.getMessage()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("Database Error.").build();
         }
     }
 
